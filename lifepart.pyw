@@ -2,14 +2,21 @@ from PyQt5.QtWidgets import QLabel, QMainWindow, QApplication, QTextEdit, QSizeP
 from PyQt5.QtCore import QTimer
 from PyQt5.QtGui import QPixmap
 from PyQt5 import QtCore, QtWidgets
+
+from pystray import MenuItem as item
+import pystray
+from PIL import Image
+
 import sys
+import configparser
+import threading
   
 class Window(QMainWindow): 
     def __init__(self): 
         super().__init__() 
   
         self.setWindowTitle("LifePart")
-        self.setStyleSheet("background-color: #f9f1a5;")
+        self.setStyleSheet('background-color: ' + config['settings']['background_color'] + '; color: ' + config['settings']['foreground_color'] + ';')
         self.setGeometry(0, 0, 460, 170)
         
         x = int((size.width() - self.width()) / 2)
@@ -41,6 +48,27 @@ class Window(QMainWindow):
         
         self.show()
         
+def showIcon():
+    image=Image.open("flower.png")
+    menu=(item('Показать/скрыть', toggle_window), item('Выход', quit_window))
+    icon=pystray.Icon('name', image, 'LifePart', menu)
+    icon.run()
+
+config = configparser.ConfigParser()
+config.read('config.ini')
+
+x = threading.Thread(target=showIcon, args=())
+x.start()
+
+sh = config['settings']['show_cmd']
+
+if sh == "False":
+    sh = False
+else:
+    sh = True
+
+# toggle_window()
+
 App = QApplication(sys.argv) 
 screen = App.primaryScreen()
 size = screen.size()
