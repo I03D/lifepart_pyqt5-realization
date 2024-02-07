@@ -11,6 +11,8 @@ import sys
 import configparser
 import threading
 
+import os
+
 class Window(QMainWindow): 
     def __init__(self): 
         super().__init__() 
@@ -48,21 +50,30 @@ class Window(QMainWindow):
         
         self.show()
 
-def toggle_window():
-    print('test2')
-    
+
+config = configparser.ConfigParser()
+config.read('config.ini')
+
 def quit_window():
-    print('test3')
+    config['settings']['show_cmd'] = str(not sh)
+    with open('config.ini', 'w') as configfile:
+        config.write(configfile)
+    os._exit(0)
+
+def toggle_window():
+    global sh
+    if sh:
+        sh = False
+        window.show()
+    else:
+        sh = True
+        window.hide()
 
 def showIcon():
     image=Image.open("flower.png")
     menu=(item('Показать/скрыть', toggle_window), item('Выход', quit_window))
     icon=pystray.Icon('name', image, 'LifePart', menu)
     icon.run()
-    print('test')
-
-config = configparser.ConfigParser()
-config.read('config.ini')
 
 x = threading.Thread(target=showIcon, args=())
 x.start()
