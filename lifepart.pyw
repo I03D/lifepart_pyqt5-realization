@@ -10,7 +10,7 @@ from PIL import Image
 import sys
 import configparser
 import threading
-  
+
 class Window(QMainWindow): 
     def __init__(self): 
         super().__init__() 
@@ -47,12 +47,19 @@ class Window(QMainWindow):
         # self.setLayout(self.layout)
         
         self.show()
-        
+
+def toggle_window():
+    print('test2')
+    
+def quit_window():
+    print('test3')
+
 def showIcon():
     image=Image.open("flower.png")
     menu=(item('Показать/скрыть', toggle_window), item('Выход', quit_window))
     icon=pystray.Icon('name', image, 'LifePart', menu)
     icon.run()
+    print('test')
 
 config = configparser.ConfigParser()
 config.read('config.ini')
