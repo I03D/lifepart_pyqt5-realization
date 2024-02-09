@@ -10,6 +10,7 @@ from PIL import Image
 import sys
 import configparser
 import threading
+import subprocess
 
 import os
 
@@ -48,7 +49,12 @@ class Window(QMainWindow):
         # self.layout.addWidget(self.textEdit)
         # self.setLayout(self.layout)
         
+        # self.closeEvent = quit_window
         self.show()
+
+    def closeEvent(self, event):
+        event.ignore()
+        toggle_window()
 
 
 config = configparser.ConfigParser()
@@ -91,6 +97,8 @@ App = QApplication(sys.argv)
 screen = App.primaryScreen()
 size = screen.size()
         
+subprocess.run(["python", "blinker45.pyw"])
+
 window = Window() 
   
 sys.exit(App.exec()) 
