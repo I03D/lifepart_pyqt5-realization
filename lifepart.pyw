@@ -50,12 +50,18 @@ class Window(QMainWindow):
         # self.setLayout(self.layout)
         
         # self.closeEvent = quit_window
+
+        self.timer = QTimer()
+        self.timer.timeout.connect(self.testText)
+        self.timer.start(1000)
         self.show()
+
+    def testText(self):
+        self.textEdit.insertPlainText('\ntest')
 
     def closeEvent(self, event):
         event.ignore()
         toggle_window()
-
 
 config = configparser.ConfigParser()
 config.read('config.ini')
