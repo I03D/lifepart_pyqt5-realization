@@ -59,7 +59,7 @@ class Window(QMainWindow):
         self.timer.start(1000)
         self.show()
 
-    def report(self, message, data):
+    def report(self, message='', data=None):
         match message:
             case 'blocked':
                 text = '\nСессия заблокирована, сбрасываем время.'
@@ -70,7 +70,7 @@ class Window(QMainWindow):
             case 'recommend':
                 text = '\nПора сделать 15-минутный перерыв.'
             case 'recommend at least':
-                text = '\nПора сделать 15-минутный перерыв.'
+                text = '\nПора сделать хотя бы 15-минутный перерыв.'
             case 'posix hint':
                 text = '\nЗаблокируйте сессию (через i3lock), это  сбросит таймер в течение 5 минут)'
             case 'nt hint':
