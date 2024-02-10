@@ -22,7 +22,7 @@ class Window(QMainWindow):
         self.label.setPixmap(pixmap)
         
         timer = QTimer()
-        timer.singleShot(400, sys.exit)
+        timer.singleShot(300, sys.exit)
         self.show() 
   
 App = QApplication(sys.argv) 

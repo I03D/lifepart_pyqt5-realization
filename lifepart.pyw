@@ -75,8 +75,6 @@ class Window(QMainWindow):
                 text = '\nЗаблокируйте сессию (через i3lock), это  сбросит таймер в течение 5 минут)'
             case 'nt hint':
                 text = '\n(Windows+L заблокирует сессию и сбросит таймер в течение 5 минут)'
-            case 'debug':
-                text = '\nDebug: ' + str(data)
             case _:
                 text = '\nEmpty message!'
         self.textEdit.insertPlainText(text)
@@ -101,9 +99,7 @@ class Window(QMainWindow):
                 self.report('unblocked')
 
                 big_timer_start = floor(time.time())
-                self.report('debug', 'big_timer_start = ' + str(big_timer_start))
                 small_timer_start = big_timer_start
-                self.report('debug', 'small_timer_start = ' + str(small_timer_start))
 
                 locked = False
 
@@ -122,13 +118,13 @@ class Window(QMainWindow):
 
                     if big_timer < 3000:
                         self.report('recommend')
-                    else:
-                        self.report('recommend at least')
 
-                    if os.name == 'posix':
-                        self.report('posix hint')
-                    elif os.name == 'nt':
-                        self.report('nt hint')
+                        if os.name == 'posix':
+                            self.report('posix hint')
+                        elif os.name == 'nt':
+                            self.report('nt hint')
+                        else:
+                            self.report('recommend at least')
                 else:
                     subprocess.run(["python", "blinker5.pyw"])
 
