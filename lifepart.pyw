@@ -11,8 +11,11 @@ import sys
 import configparser
 import threading
 import subprocess
-
 import os
+import time
+from math import floor
+
+import lockTest
 
 class Window(QMainWindow): 
     def __init__(self): 
@@ -52,12 +55,82 @@ class Window(QMainWindow):
         # self.closeEvent = quit_window
 
         self.timer = QTimer()
-        self.timer.timeout.connect(self.testText)
+        self.timer.timeout.connect(self.loopCheck)
         self.timer.start(1000)
         self.show()
 
-    def testText(self):
-        self.textEdit.insertPlainText('\ntest')
+    def report(self, message, data):
+        match message:
+            case 'blocked':
+                text = '\nСессия заблокирована, сбрасываем время.'
+            case 'unblocked':
+                text = '\nСессия разблокирована, время пошло.'
+            case 'passed':
+                text = '\nПрошло ' + str(data) + ' минут.'
+            case 'recommend':
+                text = '\nПора сделать 15-минутный перерыв.'
+            case 'recommend at least':
+                text = '\nПора сделать 15-минутный перерыв.'
+            case 'posix hint':
+                text = '\nЗаблокируйте сессию (через i3lock), это  сбросит таймер в течение 5 минут)'
+            case 'nt hint':
+                text = '\n(Windows+L заблокирует сессию и сбросит таймер в течение 5 минут)'
+            case 'debug':
+                text = '\nDebug: ' + str(data)
+            case _:
+                text = '\nEmpty message!'
+        self.textEdit.insertPlainText(text)
+
+    def loopCheck(self):
+        global big_timer
+        global small_timer
+
+        global big_timer_start
+        global small_timer_start
+
+        global locked
+
+        if lockTest.test():
+            if not locked:
+                self.report('blocked')
+                big_timer_start = floor(time.time())
+                small_timer_start = big_timer_start
+            locked = True
+        else:
+            if locked:
+                self.report('unblocked')
+
+                big_timer_start = floor(time.time())
+                self.report('debug', 'big_timer_start = ' + str(big_timer_start))
+                small_timer_start = big_timer_start
+                self.report('debug', 'small_timer_start = ' + str(small_timer_start))
+
+                locked = False
+
+            timestamp = floor(time.time())
+            big_timer = timestamp - big_timer_start
+            small_timer = timestamp - small_timer_start
+
+            if small_timer > 300:
+                self.report('passed', floor(big_timer/60))
+
+                small_timer = 0
+                small_timer_start = timestamp
+
+                if big_timer >= 2700:
+                    subprocess.run(["python", "blinker45.pyw"])
+
+                    if big_timer < 3000:
+                        self.report('recommend')
+                    else:
+                        self.report('recommend at least')
+
+                    if os.name == 'posix':
+                        self.report('posix hint')
+                    elif os.name == 'nt':
+                        self.report('nt hint')
+                else:
+                    subprocess.run(["python", "blinker5.pyw"])
 
     def closeEvent(self, event):
         event.ignore()
@@ -98,6 +171,14 @@ else:
     sh = True
 
 # toggle_window()
+
+small_timer = 0
+big_timer = 0
+
+big_timer_start = floor(time.time())
+small_timer_start = big_timer_start
+
+locked = False
 
 App = QApplication(sys.argv) 
 screen = App.primaryScreen()
