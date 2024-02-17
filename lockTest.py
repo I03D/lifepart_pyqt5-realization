@@ -1,7 +1,6 @@
 import os, time, subprocess
 
 def test():
-    print('update test')
     if os.name == 'posix':
         process = 'i3lock'
 
@@ -18,9 +17,10 @@ def test():
         process = 'LogonUI.exe'
         pid = False
         
-        tasklist = str(subprocess.check_output('TASKLIST'))
+        # tasklist = str(subprocess.check_output('TASKLIST', shell=True))
+        tasklist = subprocess.Popen(['TASKLIST'], stdout=subprocess.PIPE).communicate()[0].decode('latin-1').strip()
+        
         if process in tasklist:
             return 1
         else:
             return 0
-            
