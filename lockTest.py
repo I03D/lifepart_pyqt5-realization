@@ -1,6 +1,7 @@
 import os, time, subprocess
 
 def test():
+    global rslt
     if os.name == 'posix':
         process = 'i3lock'
 
@@ -9,18 +10,24 @@ def test():
 
         for line in ps_lines:
             if process in line:
-                return 1
+                rslt = True
                 break
         else:
-            return 0
+            rslt = False
     elif os.name == 'nt':
         process = 'LogonUI.exe'
         pid = False
         
         # tasklist = str(subprocess.check_output('TASKLIST', shell=True))
-        tasklist = subprocess.Popen(['TASKLIST'], stdout=subprocess.PIPE).communicate()[0].decode('latin-1').strip()
+        # tasklist = subprocess.Popen(['TASKLIST'],
+        #                             stdout=subprocess.PIPE,
+        #                             creationflags=subprocess.CREATE_NO_WINDOW
+        #                             ).communicate()[0].decode('latin-1').strip()
+
+        tasklist = str(subprocess.check_output('TASKLIST',shell=True))
         
         if process in tasklist:
-            return 1
+            rslt = True
         else:
-            return 0
+            rslt = False
+
