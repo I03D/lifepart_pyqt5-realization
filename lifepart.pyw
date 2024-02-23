@@ -32,6 +32,12 @@ class Worker(QObject):
 
         # self.finished.emit()
 
+    def nt_posix_run(program):
+        if os.name == 'posix':
+            subprocess.run(["python", program])
+        elif os.name == 'nt':
+            subprocess.run(["pythonw", program])
+    
     def loopCheck(self):
         global big_timer
         global small_timer
@@ -67,7 +73,7 @@ class Worker(QObject):
                 small_timer_start = timestamp
 
                 if big_timer >= 2700:
-                    subprocess.run(["pythonw", "blinker45.pyw"])
+                    ntposix_run("blinker45.pyw")
 
                     if big_timer < 3000:
                         self.report('recommend')
@@ -79,7 +85,7 @@ class Worker(QObject):
                         else:
                             self.report('recommend at least')
                 else:
-                    subprocess.run(["pythonw", "blinker5.pyw"])
+                    ntposix_run("blinker5.pyw")
 
     def report(self, message='', data=None):
         match message:
@@ -203,7 +209,7 @@ App = QApplication(sys.argv)
 screen = App.primaryScreen()
 size = screen.size()
         
-subprocess.run(["pythonw", "blinker45.pyw"])
+ntposix_run("blinker45.pyw")
 
 window = Window() 
  
