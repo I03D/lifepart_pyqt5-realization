@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import QLabel, QMainWindow, QApplication, QTextEdit, QSizePolicy
 from PyQt5.QtCore import QTimer, QThread, QObject, pyqtSignal
-from PyQt5.QtGui import QPixmap
+from PyQt5.QtGui import QPixmap, QTextCursor
 from PyQt5 import QtCore, QtWidgets
 
 from pystray import MenuItem as item
@@ -41,10 +41,7 @@ class Worker(QObject):
 
         global locked
 
-        rslt = False
-        lockTest.test()
-
-        if rslt:
+        if lockTest.test():
             if not locked:
                 self.report('blocked')
                 big_timer_start = floor(time.time())
@@ -83,6 +80,28 @@ class Worker(QObject):
                             self.report('recommend at least')
                 else:
                     subprocess.run(["pythonw", "blinker5.pyw"])
+
+    def report(self, message='', data=None):
+        match message:
+            case 'blocked':
+                text = '\nСессия заблокирована, сбрасываем время.'
+            case 'unblocked':
+                text = '\nСессия разблокирована, время пошло.'
+            case 'passed':
+                text = '\nПрошло ' + str(data) + ' минут.'
+            case 'recommend':
+                text = '\nПора сделать 15-минутный перерыв.'
+            case 'recommend at least':
+                text = '\nПора сделать хотя бы 15-минутный перерыв.'
+            case 'posix hint':
+                text = '\nЗаблокируйте сессию (через i3lock), это  сбросит таймер в течение 5 минут)'
+            case 'nt hint':
+                text = '\n(Windows+L заблокирует сессию и сбросит таймер в течение 5 минут)'
+            case _:
+                text = '\nEmpty message!'
+        window.textEdit.moveCursor(QTextCursor.End)
+        window.textEdit.insertPlainText(text)
+
 
 
 class Window(QMainWindow): 
@@ -130,26 +149,6 @@ class Window(QMainWindow):
         self.worker_thread.start()
 
         self.show()
-
-    def report(self, message='', data=None):
-        match message:
-            case 'blocked':
-                text = '\nСессия заблокирована, сбрасываем время.'
-            case 'unblocked':
-                text = '\nСессия разблокирована, время пошло.'
-            case 'passed':
-                text = '\nПрошло ' + str(data) + ' минут.'
-            case 'recommend':
-                text = '\nПора сделать 15-минутный перерыв.'
-            case 'recommend at least':
-                text = '\nПора сделать хотя бы 15-минутный перерыв.'
-            case 'posix hint':
-                text = '\nЗаблокируйте сессию (через i3lock), это  сбросит таймер в течение 5 минут)'
-            case 'nt hint':
-                text = '\n(Windows+L заблокирует сессию и сбросит таймер в течение 5 минут)'
-            case _:
-                text = '\nEmpty message!'
-        self.textEdit.insertPlainText(text)
 
     def closeEvent(self, event):
         event.ignore()
@@ -207,5 +206,6 @@ size = screen.size()
 subprocess.run(["pythonw", "blinker45.pyw"])
 
 window = Window() 
-  
+ 
 sys.exit(App.exec()) 
+

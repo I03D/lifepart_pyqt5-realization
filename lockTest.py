@@ -10,10 +10,10 @@ def test():
 
         for line in ps_lines:
             if process in line:
-                rslt = True
+                return True
                 break
         else:
-            rslt = False
+            return False
     elif os.name == 'nt':
         process = 'LogonUI.exe'
         pid = False
@@ -27,7 +27,7 @@ def test():
         tasklist = str(subprocess.check_output('TASKLIST',shell=True))
         
         if process in tasklist:
-            rslt = True
+            return True
         else:
-            rslt = False
+            return False
 
