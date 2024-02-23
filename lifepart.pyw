@@ -209,7 +209,7 @@ App = QApplication(sys.argv)
 screen = App.primaryScreen()
 size = screen.size()
         
-ntposix_run("blinker45.pyw")
+nt_posix_run("blinker45.pyw")
 
 window = Window() 
  
