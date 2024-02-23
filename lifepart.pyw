@@ -19,6 +19,12 @@ import lockTest
 
 os.chdir(os.path.dirname(os.path.realpath(__file__)))
 
+def nt_posix_run(program):
+    if os.name == 'posix':
+        subprocess.run(["python", program])
+    elif os.name == 'nt':
+        subprocess.run(["pythonw", program])
+
 class Worker(QObject):
     finished = pyqtSignal()
 
@@ -32,12 +38,6 @@ class Worker(QObject):
 
         # self.finished.emit()
 
-    def nt_posix_run(program):
-        if os.name == 'posix':
-            subprocess.run(["python", program])
-        elif os.name == 'nt':
-            subprocess.run(["pythonw", program])
-    
     def loopCheck(self):
         global big_timer
         global small_timer
