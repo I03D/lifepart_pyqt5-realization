@@ -73,7 +73,7 @@ class Worker(QObject):
                 small_timer_start = timestamp
 
                 if big_timer >= 2700:
-                    ntposix_run("blinker45.pyw")
+                    nt_posix_run("blinker45.pyw")
 
                     if big_timer < 3000:
                         self.report('recommend')
