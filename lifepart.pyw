@@ -85,7 +85,7 @@ class Worker(QObject):
                         else:
                             self.report('recommend at least')
                 else:
-                    ntposix_run("blinker5.pyw")
+                    nt_posix_run("blinker5.pyw")
 
     def report(self, message='', data=None):
         match message:
