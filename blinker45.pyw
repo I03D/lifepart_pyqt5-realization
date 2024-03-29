@@ -12,7 +12,7 @@ class Window(QMainWindow):
 
         self.setGeometry(0, 0, size.width(), size.height())
         self.setStyleSheet("background-color: white;")
-        self.setWindowFlags(self.windowFlags() | QtCore.Qt.FramelessWindowHint)
+        self.setWindowFlags(self.windowFlags() | QtCore.Qt.WindowStaysOnTopHint | QtCore.Qt.FramelessWindowHint)
         
         pixmap = QPixmap('flower.png')
         self.label = QLabel('test', self)
@@ -29,5 +29,5 @@ screen = App.primaryScreen()
 size = screen.size()
         
 window = Window() 
-  
+
 sys.exit(App.exec()) 

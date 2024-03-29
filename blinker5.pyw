@@ -12,8 +12,7 @@ class Window(QMainWindow):
 
         self.setGeometry(0, 0, size.width(), 100)
         self.setStyleSheet("background-color: white;")
-        self.setWindowFlags(self.windowFlags() | QtCore.Qt.FramelessWindowHint)
-
+        self.setWindowFlags(self.windowFlags() | QtCore.Qt.WindowStaysOnTopHint | QtCore.Qt.FramelessWindowHint)
         
         pixmap = QPixmap('sun.png')
         self.label = QLabel('test', self)
