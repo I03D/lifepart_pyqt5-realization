@@ -1,4 +1,4 @@
-Добавление в автозагрузку через планировщик задач Windows:
+# Добавление в автозагрузку через планировщик задач Windows:
 
 Программа:          C:\Users\ **(user)** \AppData\Local\Programs\Python\Python313\pythonw
 
