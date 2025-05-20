@@ -8,4 +8,5 @@
 
 ## Через планировщик задач Windows:
 **Параметры запуска**:  C:\Users\ **(user)** \Desktop\lifepart_pyqt5-realization-main\lifepart.pyw  (путь к LifePart)
+
 **Программа**:          C:\Users\ **(user)** \AppData\Local\Programs\Python\ **(Python313, например)** \pythonw
