@@ -1,4 +1,7 @@
 # ~ LifePart / Мигалка ~
+
+![readme-meme](https://github.com/user-attachments/assets/9f632797-12a9-4f13-98a4-ab96896c9dda)
+
 # Добавление в автозагрузку:
 
 ## Через папку автозагрузки:
