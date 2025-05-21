@@ -1,6 +1,6 @@
 # ~ LifePart / Мигалка ~
 
-![readme-meme](https://github.com/user-attachments/assets/9f632797-12a9-4f13-98a4-ab96896c9dda)
+![readme-meme-fixed](https://github.com/user-attachments/assets/4553c6c1-f5d5-4041-ab6f-5cef52929208)
 
 # Добавление в автозагрузку:
 
