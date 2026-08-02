@@ -73,7 +73,7 @@ class Worker(QObject):
                 small_timer_start = timestamp
 
                 if big_timer >= 2700:
-                    nt_posix_run("blinker45.pyw")
+                    nt_posix_run("longBlink.pyw")
 
                     if big_timer < 3000:
                         self.report('recommend')
@@ -85,7 +85,7 @@ class Worker(QObject):
                         else:
                             self.report('recommend at least')
                 else:
-                    nt_posix_run("blinker5.pyw")
+                    nt_posix_run("shortBlink.pyw")
 
     def report(self, message='', data=None):
         match message:
@@ -130,7 +130,7 @@ class Window(QMainWindow):
         self.textEdit.insertPlainText("~ Мигалка ~")
         self.textEdit.insertPlainText("\nЭта программа напоминает делать 15-минутный перерыв")
         self.textEdit.insertPlainText("\nпосле 45 минут работы и смотреть вдаль каждые 5 минут.")
-        self.textEdit.insertPlainText("\n(Программа работает в фоне; окно можно просто закрыть)")
+        self.textEdit.insertPlainText("\n(Программа работает в фоне; окно можно закрыть)")
         self.textEdit.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         
         wid = QtWidgets.QWidget(self)
@@ -180,7 +180,8 @@ def toggle_window():
 
 def showIcon():
     image=Image.open("flower.png")
-    menu=(item('Показать/скрыть', toggle_window), item('Выход', quit_window))
+    menu=(item('Показать/скрыть', toggle_window, default=True), item('Выход', quit_window))
+    default=True
     icon=pystray.Icon('name', image, 'LifePart', menu)
     icon.run()
 
@@ -209,7 +210,7 @@ App = QApplication(sys.argv)
 screen = App.primaryScreen()
 size = screen.size()
         
-nt_posix_run("blinker45.pyw")
+nt_posix_run("longBlink.pyw")
 
 window = Window() 
  

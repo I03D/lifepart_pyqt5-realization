@@ -2,6 +2,12 @@
 
 ![readme-meme-fixed](https://github.com/user-attachments/assets/4553c6c1-f5d5-4041-ab6f-5cef52929208)
 
+# Установка модулей для запуска:
+Install modules.bat
+
+# Запуск:
+lifepart.pyw
+
 # Добавление в автозагрузку:
 
 ## Через папку автозагрузки:
