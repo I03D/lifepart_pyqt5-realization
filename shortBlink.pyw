@@ -82,7 +82,7 @@ class Window(QWidget):
         self.setWindowFlags(self.windowFlags() |
             Qt.WindowTransparentForInput |
             Qt.Tool |
-            Qt.WindowDoesNotAcceptFocus) |
+            Qt.WindowDoesNotAcceptFocus |
             Qt.WindowStaysOnTopHint)
         self.setAttribute(Qt.WA_TransparentForMouseEvents, True)
 
