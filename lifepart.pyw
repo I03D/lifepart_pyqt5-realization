@@ -19,11 +19,22 @@ import lockTest
 
 os.chdir(os.path.dirname(os.path.realpath(__file__)))
 
-def nt_posix_run(program):
+def nt_posix_run(program, arg=None):
+    # Формируем базовый список аргументов
     if os.name == 'posix':
-        subprocess.run(["python", program])
+        cmd = ["python", program]
     elif os.name == 'nt':
-        subprocess.run(["pythonw", program])
+        cmd = ["pythonw", program]
+    else:
+        raise OSError(f"Unsupported OS: {os.name}")
+
+    # Добавляем аргумент, если он передан
+    if arg is not None:
+        # Преобразуем в строку — subprocess ожидает строковые аргументы
+        cmd.append(str(arg))
+
+    subprocess.run(cmd)
+
 
 class Worker(QObject):
     finished = pyqtSignal()
@@ -85,7 +96,7 @@ class Worker(QObject):
                         else:
                             self.report('recommend at least')
                 else:
-                    nt_posix_run("shortBlink.pyw")
+                    nt_posix_run("shortBlink.pyw", (floor(big_timer/300)))
 
     def report(self, message='', data=None):
         match message:
@@ -210,7 +221,7 @@ App = QApplication(sys.argv)
 screen = App.primaryScreen()
 size = screen.size()
         
-nt_posix_run("longBlink.pyw")
+nt_posix_run("longBlink.pyw", 0)
 
 window = Window() 
  
