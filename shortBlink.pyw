@@ -79,7 +79,13 @@ class Window(QWidget):
         
         timer = QTimer()
         timer.singleShot(600, sys.exit) # 350
-        self.setWindowFlags(self.windowFlags() | Qt.WindowTransparentForInput)
+        self.setWindowFlags(self.windowFlags() |
+            Qt.WindowTransparentForInput |
+            Qt.Tool |
+            Qt.WindowDoesNotAcceptFocus) |
+            Qt.WindowStaysOnTopHint)
+        self.setAttribute(Qt.WA_TransparentForMouseEvents, True)
+
         self.show() 
   
 App = QApplication(sys.argv) 
