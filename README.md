@@ -1,6 +1,6 @@
 # ~ LifePart / Мигалка ~
 
-![readme-meme-fixed](https://github.com/user-attachments/assets/4553c6c1-f5d5-4041-ab6f-5cef52929208)
+<img width="789" height="869" alt="tutorial" src="https://github.com/user-attachments/assets/09f73587-1061-4636-b09e-5e46ff3d400c" />
 
 # Установка модулей для запуска:
 Install modules.bat
