@@ -81,6 +81,7 @@ class Window(QWidget):
         
         timer = QTimer()
         timer.singleShot(600, sys.exit) # 350
+        self.setWindowFlags(self.windowFlags() | Qt.WindowTransparentForInput)
         self.show() 
   
 App = QApplication(sys.argv) 
@@ -88,5 +89,6 @@ screen = App.primaryScreen()
 size = screen.size()
 
 window = Window()
+
 
 sys.exit(App.exec())

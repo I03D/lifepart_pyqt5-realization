@@ -79,6 +79,7 @@ class Window(QWidget):
         
         timer = QTimer()
         timer.singleShot(600, sys.exit) # 350
+        self.setWindowFlags(self.windowFlags() | Qt.WindowTransparentForInput)
         self.show() 
   
 App = QApplication(sys.argv) 
