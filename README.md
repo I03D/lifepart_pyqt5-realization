@@ -17,5 +17,5 @@ lifepart.pyw
 4. Добавить в открывшуюся папку **ярлык LifePart**: перетащить **lifepart.pyw**, зажав правую кнопку мыши, либо в контекстном меню выбрать **"Создать" > "Ярлык"** и пройти инструкции мастера создания (выбрать файл **lifepart.pyw** и имя для ярлыка на следующем шаге).
 
 ## Через планировщик задач Windows:
-**Параметры запуска**:  C:\Users\ **(user)** \Desktop\lifepart_pyqt5-realization-main\lifepart.pyw  (путь к LifePart)
+**Параметры запуска**:  C:\Users\ **(user)** \Desktop\lifepart_pyqt5-realization-main\lifepart.pyw **(путь к LifePart)**
 **Программа**:          C:\Users\ **(user)** \AppData\Local\Programs\Python\ **(Python313, например)** \pythonw
