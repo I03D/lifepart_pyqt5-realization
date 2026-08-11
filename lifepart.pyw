@@ -189,9 +189,15 @@ def toggle_window():
         sh = True
         window.hide()
 
+def run_settings():
+    nt_posix_run("settings.pyw")
+
 def showIcon():
     image=Image.open("flower.png")
-    menu=(item('Показать/скрыть', toggle_window, default=True), item('Выход', quit_window))
+    menu=(
+        item('Показать/скрыть', toggle_window, default=True),
+        item('Выход', quit_window),
+        item('Настройки', run_settings))
     default=True
     icon=pystray.Icon('name', image, 'LifePart', menu)
     icon.run()

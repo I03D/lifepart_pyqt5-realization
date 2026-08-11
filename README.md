@@ -1,6 +1,6 @@
 # ~ LifePart / Мигалка ~
 
-<img width="789" height="869" alt="tutorial" src="https://github.com/user-attachments/assets/99978d82-e0f1-4c18-89b6-3d506fa814a5" />
+![readme-meme-fixed](https://github.com/user-attachments/assets/4553c6c1-f5d5-4041-ab6f-5cef52929208)
 
 # Установка модулей для запуска:
 Install modules.bat
@@ -17,5 +17,5 @@ lifepart.pyw
 4. Добавить в открывшуюся папку **ярлык LifePart**: перетащить **lifepart.pyw**, зажав правую кнопку мыши, либо в контекстном меню выбрать **"Создать" > "Ярлык"** и пройти инструкции мастера создания (выбрать файл **lifepart.pyw** и имя для ярлыка на следующем шаге).
 
 ## Через планировщик задач Windows:
-**Параметры запуска**:  C:\Users\ **(user)** \Desktop\lifepart_pyqt5-realization-main\lifepart.pyw **(путь к LifePart)**
+**Параметры запуска**:  C:\Users\ **(user)** \Desktop\lifepart_pyqt5-realization-main\lifepart.pyw  (путь к LifePart)
 **Программа**:          C:\Users\ **(user)** \AppData\Local\Programs\Python\ **(Python313, например)** \pythonw
