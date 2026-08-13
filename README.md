@@ -1,5 +1,9 @@
 # ~ LifePart / Мигалка ~
 
+# Доступные настройки:
+<img width="390" height="465" alt="Screenshot_1" src="https://github.com/user-attachments/assets/2aee5ac8-8c2b-471f-9772-adf7946cd478" />
+
+# Использование:
 <img width="789" height="869" alt="tutorial" src="https://github.com/user-attachments/assets/99978d82-e0f1-4c18-89b6-3d506fa814a5" />
 
 # Установка:
