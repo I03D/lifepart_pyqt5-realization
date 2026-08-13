@@ -21,6 +21,7 @@ def get_transparency():
         config.read(CONFIG_FILE)
         # Получаем значение, преобразуем в int. Если ключа нет - берем дефолт
         val = config.getint('settings', 'background_transparency', fallback=DEFAULT_TRANSPARENCY)
+
         
         # Ограничиваем диапазон 0-255
         if val < 0: val = 0
@@ -38,8 +39,11 @@ class Window(QWidget):
         # Парсинг аргументов
         parser = argparse.ArgumentParser(description="Программа мигания")
         parser.add_argument("count", nargs="?", type=int, default=1, help="Число от 1 до 9")
+        parser.add_argument("testTransparency", nargs="?", type=int, default=-1, help="Тестирование прозрачности (1-255)")
         args = parser.parse_args()
         count = args.count
+        testTransparency = args.testTransparency
+
 
         # Получение размера экрана (глобальная переменная size должна быть определена до создания окна)
         screen = QApplication.primaryScreen()
@@ -62,11 +66,17 @@ class Window(QWidget):
         # Однако setWindowOpacity работает даже с этим флагом для самого виджета.
         
         # --- НАСТРОЙКА ПРОЗРАЧНОСТИ ---
-        transparency_val = get_transparency()
-        # setWindowOpacity принимает float от 0.0 до 1.0
-        opacity = transparency_val / 255.0
-        self.setWindowOpacity(opacity)
-        #print(f"Установлена прозрачность: {transparency_val} ({opacity:.2f})")
+        
+        if testTransparency != -1:
+            print("test")
+            self.setWindowOpacity(float(testTransparency/255.0))
+            print(testTransparency)
+        else:
+            transparency_val = get_transparency()
+            # setWindowOpacity принимает float от 0.0 до 1.0
+            opacity = transparency_val / 255.0
+            self.setWindowOpacity(opacity)
+            #print(f"Установлена прозрачность: {transparency_val} ({opacity:.2f})")
 
         # Атрибут для игнорирования мыши
         self.setAttribute(Qt.WA_TransparentForMouseEvents, True)
@@ -80,7 +90,7 @@ class Window(QWidget):
         self.bg_label.setAlignment(Qt.AlignCenter)
         self.bg_label.setPixmap(pixmap)
         # Фон лейбла должен быть прозрачным, чтобы видеть эффект windowOpacity
-        self.bg_label.setStyleSheet("background-color: transparent;")
+        #self.bg_label.setStyleSheet("background-color: transparent;")
 
         # --- 2. Индикаторы ---
         pointPixmap = QPixmap('point.png')
@@ -106,7 +116,7 @@ class Window(QWidget):
                 anim_label = QLabel(self)
                 anim_label.setAlignment(Qt.AlignCenter)
                 anim_label.move(x_pos, y_pos - 5)
-                anim_label.setStyleSheet("background-color: transparent;")
+                #anim_label.setStyleSheet("background-color: transparent;")
                 
                 movie = QMovie('activePoint.gif')
                 if movie.isValid():
@@ -122,7 +132,7 @@ class Window(QWidget):
                 if not pointPixmap.isNull():
                     label.setPixmap(pointPixmap)
                 label.move(x_pos, y_pos)
-                label.setStyleSheet("background-color: transparent;")
+                #label.setStyleSheet("background-color: transparent;")
                 self.images.append(label)
 
         # --- 3. Индикаторы предстоящих вызовов ---
@@ -136,7 +146,7 @@ class Window(QWidget):
             if not pointPixmap2.isNull():
                 label2.setPixmap(pointPixmap2)
             label2.move(x_pos, y_pos)
-            label2.setStyleSheet("background-color: transparent;")
+            #label2.setStyleSheet("background-color: transparent;")
             self.images.append(label2)
 
         # Таймер закрытия

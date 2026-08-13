@@ -8,6 +8,16 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QColor
 import configparser
 
+import traceback
+
+
+def exception_hook(exctype, value, traceback_):
+    print("Unhandled exception:", exctype, value)
+    print(''.join(traceback.format_exception(exctype, value, traceback_)))
+
+sys.excepthook = exception_hook
+
+
 class SettingsWindow(QWidget):
     def __init__(self):
         super().__init__()
@@ -17,10 +27,10 @@ class SettingsWindow(QWidget):
         # Получаем цвета из конфига
         bg_color = self.config.get('settings', 'background_color', fallback='#f0f0f0')
         fg_color = self.config.get('settings', 'foreground_color', fallback='#000000')
-        bg_alpha = self.config.getint('settings', 'background_transparency', fallback=255)
+        #bg_alpha = self.config.getint('settings', 'background_transparency', fallback=255)
         
         # Формируем стиль окна (теперь прозрачность НЕ зависит от ползунка)
-        style_sheet = f"background-color: rgba({QColor(bg_color).red()}, {QColor(bg_color).green()}, {QColor(bg_color).blue()}, {bg_alpha}); color: {fg_color};"
+        style_sheet = f"background-color: rgba({QColor(bg_color).red()}, {QColor(bg_color).green()}, {QColor(bg_color).blue()}, 255); color: {fg_color};"
         self.setStyleSheet(style_sheet)
         
         self.init_ui()
@@ -99,7 +109,7 @@ class SettingsWindow(QWidget):
         trans_val = self.config.getint('settings', 'background_transparency', fallback=255)
         self.slider_trans.setValue(trans_val)
         # Теперь при изменении значения запускается test.py
-        self.slider_trans.valueChanged.connect(self.run_test_script)
+        self.slider_trans.sliderReleased.connect(self.run_test_script)
         
         layout.addWidget(lbl_trans, row, 0, alignment=Qt.AlignRight | Qt.AlignVCenter)
         layout.addWidget(self.slider_trans, row, 1, alignment=Qt.AlignLeft | Qt.AlignVCenter)
@@ -196,11 +206,15 @@ class SettingsWindow(QWidget):
                 self._apply_button_style(self.btn_fg_color)
 
     # ИЗМЕНЕНО: теперь это запускает test.py, а не меняет прозрачность
-    def run_test_script(self, value):
+    def run_test_script(self):
         """Запускает test.py при изменении ползунка"""
+        value = self.slider_trans.value()
+        print('test')
         try:
             # Запуск test.py в отдельном процессе
-            subprocess.Popen([sys.executable, "shortBlink.pyw"])
+            print("fk" + str(self.slider_trans.value()))
+            subprocess.Popen([sys.executable, "longBlink.pyw", "1", str(self.slider_trans.value())])
+            print("longBlink.pyw " + "1 " + str(self.slider_trans.value()))
         except Exception as e:
             print(f"Ошибка при запуске test.py: {e}")
 

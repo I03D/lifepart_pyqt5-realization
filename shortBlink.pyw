@@ -37,7 +37,7 @@ class Window(QWidget):
 
         # Парсинг аргументов
         parser = argparse.ArgumentParser(description="Программа мигания")
-        parser.add_argument("count", nargs="?", type=int, default=1, help="Число от 1 до 9")
+        parser.add_argument("count", nargs="?", type=int, default=1, help="Число значков от 1 до 9")
         args = parser.parse_args()
         count = args.count
 
