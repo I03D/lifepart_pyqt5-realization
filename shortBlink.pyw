@@ -8,7 +8,7 @@ import os
 
 # --- Конфигурация ---
 CONFIG_FILE = 'config.ini'
-DEFAULT_TRANSPARENCY = 150  # Значение по умолчанию, если ключа нет или файл не найден
+DEFAULT_TRANSPARENCY = 1  # Значение по умолчанию, если ключа нет или файл не найден
 
 def get_transparency():
     """Читает прозрачность из .ini файла"""
@@ -20,7 +20,7 @@ def get_transparency():
     try:
         config.read(CONFIG_FILE)
         # Получаем значение, преобразуем в int. Если ключа нет - берем дефолт
-        val = config.getint('Settings', 'background_transparency', fallback=DEFAULT_TRANSPARENCY)
+        val = config.getint('settings', 'background_transparency', fallback=DEFAULT_TRANSPARENCY)
         
         # Ограничиваем диапазон 0-255
         if val < 0: val = 0
