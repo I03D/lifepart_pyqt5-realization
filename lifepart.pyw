@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import QLabel, QMainWindow, QApplication, QTextEdit, QSizePolicy
 from PyQt5.QtCore import QTimer, QThread, QObject, pyqtSignal
-from PyQt5.QtGui import QPixmap, QTextCursor
+from PyQt5.QtGui import QPixmap, QTextCursor, QIcon
 from PyQt5 import QtCore, QtWidgets
 
 from pystray import MenuItem as item
@@ -128,6 +128,8 @@ class Window(QMainWindow):
         self.setWindowTitle("LifePart")
         self.setStyleSheet('background-color: ' + config['settings']['background_color'] + '; color: ' + config['settings']['foreground_color'] + ';')
         self.setGeometry(0, 0, 460, 170)
+
+        self.setWindowIcon(QIcon('icon.png'))
         
         x = int((size.width() - self.width()) / 2)
         y = int((size.height() - self.height()) / 2)
@@ -193,11 +195,11 @@ def run_settings():
     nt_posix_run("settings.pyw")
 
 def showIcon():
-    image=Image.open("flower.png")
+    image=Image.open("icon.png")
     menu=(
         item('Показать/скрыть', toggle_window, default=True),
-        item('Выход', quit_window),
-        item('Настройки', run_settings))
+        item('Настройки', run_settings),
+        item('Выход', quit_window))
     default=True
     icon=pystray.Icon('name', image, 'LifePart', menu)
     icon.run()
