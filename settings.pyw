@@ -36,7 +36,7 @@ class SettingsWindow(QWidget):
         self.init_ui()
 
     def init_ui(self):
-        self.setWindowTitle('Настройки')
+        self.setWindowTitle('Параметры')
         
         layout = QGridLayout()
         layout.setSpacing(15)
@@ -45,7 +45,7 @@ class SettingsWindow(QWidget):
         row = 0
 
         # --- Заголовок ---
-        title = QLabel("Параметры приложения")
+        title = QLabel("Настройки LifePart")
         font_size = self.config.get('settings', 'font_size', fallback='14')
         title.setAlignment(Qt.AlignCenter)
         title.setStyleSheet(f"font-size: {font_size}px; font-weight: bold; padding-bottom: 10px;")
@@ -103,7 +103,7 @@ class SettingsWindow(QWidget):
         row += 1
 
         # 2. Прозрачность фона / запуск test.py
-        lbl_trans = QLabel("Прозрачность окна короткого мигания:")
+        lbl_trans = QLabel("Прозрачность мигания:")
         self.slider_trans = QSlider(Qt.Horizontal)
         self.slider_trans.setRange(0, 255)
         trans_val = self.config.getint('settings', 'background_transparency', fallback=255)
@@ -127,9 +127,9 @@ class SettingsWindow(QWidget):
         row += 1
 
         # 4. Частота обновления
-        lbl_freq = QLabel("Частота обновления:")
+        lbl_freq = QLabel("Частота обновления (мс):")
         self.spin_freq = QSpinBox()
-        self.spin_freq.setRange(1, 1000)
+        self.spin_freq.setRange(1, 1000000)
         freq_val = self.config.getint('settings', 'update_frequency', fallback=60)
         self.spin_freq.setValue(freq_val)
         
@@ -145,7 +145,7 @@ class SettingsWindow(QWidget):
         row += 1
 
         # Кнопка сохранения
-        btn_save = QPushButton("Сохранить настройки")
+        btn_save = QPushButton("Сохранить изменения")
         btn_save.clicked.connect(self.save_settings)
         
         btn_save.setStyleSheet(self._get_button_css())
@@ -209,12 +209,8 @@ class SettingsWindow(QWidget):
     def run_test_script(self):
         """Запускает test.py при изменении ползунка"""
         value = self.slider_trans.value()
-        print('test')
         try:
-            # Запуск test.py в отдельном процессе
-            print("fk" + str(self.slider_trans.value()))
             subprocess.Popen([sys.executable, "longBlink.pyw", "1", str(self.slider_trans.value())])
-            print("longBlink.pyw " + "1 " + str(self.slider_trans.value()))
         except Exception as e:
             print(f"Ошибка при запуске test.py: {e}")
 
