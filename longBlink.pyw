@@ -38,7 +38,7 @@ class Window(QWidget):
 
         # Парсинг аргументов
         parser = argparse.ArgumentParser(description="Программа мигания")
-        parser.add_argument("count", nargs="?", type=int, default=1, help="Число от 1 до 9")
+        parser.add_argument("count", nargs="?", type=int, default=-1, help="Число от 1 до 9")
         parser.add_argument("testTransparency", nargs="?", type=int, default=-1, help="Тестирование прозрачности (1-255)")
         args = parser.parse_args()
         count = args.count
@@ -135,19 +135,20 @@ class Window(QWidget):
                 #label.setStyleSheet("background-color: transparent;")
                 self.images.append(label)
 
-        # --- 3. Индикаторы предстоящих вызовов ---
-        pointPixmap2 = QPixmap('negativePoint.png')
+        # --- 3. Индикаторы предстоящих вызовов если отображение включено ---
+        if count > 0:
+            pointPixmap2 = QPixmap('negativePoint.png')
 
-        for i in range(9 - count):
-            x_pos = start_x + i * (img_width + x_gap) + count * (img_width + x_gap)
-            y_pos = y_base
+            for i in range(9 - count):
+                x_pos = start_x + i * (img_width + x_gap) + count * (img_width + x_gap)
+                y_pos = y_base
 
-            label2 = QLabel(self)
-            if not pointPixmap2.isNull():
-                label2.setPixmap(pointPixmap2)
-            label2.move(x_pos, y_pos)
-            #label2.setStyleSheet("background-color: transparent;")
-            self.images.append(label2)
+                label2 = QLabel(self)
+                if not pointPixmap2.isNull():
+                    label2.setPixmap(pointPixmap2)
+                label2.move(x_pos, y_pos)
+                #label2.setStyleSheet("background-color: transparent;")
+                self.images.append(label2)
 
         # Таймер закрытия
         timer = QTimer()
