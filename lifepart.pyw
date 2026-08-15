@@ -1,6 +1,6 @@
-from PyQt5.QtWidgets import QLabel, QMainWindow, QApplication, QTextEdit, QSizePolicy
+from PyQt5.QtWidgets import QLabel, QMainWindow, QApplication, QTextEdit, QSizePolicy, QPushButton
 from PyQt5.QtCore import QTimer, QThread, QObject, pyqtSignal
-from PyQt5.QtGui import QPixmap, QTextCursor, QIcon
+from PyQt5.QtGui import QPixmap, QTextCursor, QIcon, QFontMetrics
 from PyQt5 import QtCore, QtWidgets
 
 from pystray import MenuItem as item
@@ -16,6 +16,16 @@ import time
 from math import floor
 
 import lockTest
+
+import traceback
+
+
+def exception_hook(exctype, value, traceback_):
+    print("Unhandled exception:", exctype, value)
+    print(''.join(traceback.format_exception(exctype, value, traceback_)))
+
+sys.excepthook = exception_hook
+
 
 os.chdir(os.path.dirname(os.path.realpath(__file__)))
 
@@ -44,8 +54,9 @@ class Worker(QObject):
 
     def do_work(self):
         self.timer = QTimer()
-        self.timer.timeout.connect(self.loopCheck)
-        self.timer.start(1000)
+        updFreq = config['settings']['update_frequency']
+        print('updFreq = ' + updFreq)
+        self.timer.start(int(updFreq))
 
         # self.finished.emit()
 
@@ -126,7 +137,12 @@ class Window(QMainWindow):
         super().__init__() 
   
         self.setWindowTitle("LifePart")
-        self.setStyleSheet('background-color: ' + config['settings']['background_color'] + '; color: ' + config['settings']['foreground_color'] + ';')
+        print('test font-size == ' + config['settings']['font_size'])
+        self.setStyleSheet('background-color: '
+                           + config['settings']['background_color']
+                           + '; color: '
+                           + config['settings']['foreground_color']
+                           + ';')
         self.setGeometry(0, 0, 460, 170)
 
         self.setWindowIcon(QIcon('icon.png'))
@@ -138,13 +154,21 @@ class Window(QMainWindow):
         self.textEdit = QTextEdit(self)
         self.textEdit.setGeometry(0, 0, 460, 170)  # Set the position and size of the input field
         self.textEdit.setReadOnly(True)
-        self.textEdit.setFontPointSize(10);
+        self.fontSize = int(config['settings']['font_size'])
+        self.textEdit.setFontPointSize(self.fontSize);
         self.textEdit.setAlignment(QtCore.Qt.AlignCenter)
         self.textEdit.insertPlainText("~ Мигалка ~")
         self.textEdit.insertPlainText("\nЭта программа напоминает делать 15-минутный перерыв")
         self.textEdit.insertPlainText("\nпосле 45 минут работы и смотреть вдаль каждые 5 минут.")
         self.textEdit.insertPlainText("\n(Программа работает в фоне; окно можно закрыть)")
         self.textEdit.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+
+        # Подключаем сигнал на изменение текста
+        #self.textEdit.document().contentsChanged.connect(self.update_window_size)
+        self.update_window_size()
+        
+        # Опционально: ограничим минимальную высоту (например, чтобы не было слишком коротко)
+        self.textEdit.setMinimumHeight(100)
         
         wid = QtWidgets.QWidget(self)
         self.setCentralWidget(wid)
@@ -152,8 +176,33 @@ class Window(QMainWindow):
         layout.setContentsMargins(0,0,0,0)
         layout.addWidget(self.textEdit)
         wid.setLayout(layout)
+
+        pixmap = QPixmap("settings.png")        
+        self.settings_btn = QPushButton(self)
+        self.settings_btn.setIcon(QIcon(pixmap))
+        self.settings_btn.setIconSize(pixmap.size())
+        self.settings_btn.setFlat(True)
+        x = int(self.width() - 16 - 5)
+        y = 5
+        self.settings_btn.move(x, y)
+        self.settings_btn.resize(pixmap.width(), pixmap.height())
+        self.settings_btn.setStyleSheet("""
+    QPushButton {
+        border: none;
+        background-color: transparent; /* Убираем фон самой кнопки */
+    }
+    
+    QPushButton:hover {
+        /* Белый цвет с прозрачностью 127 (50%) */
+        background-color: rgba(255, 255, 255, 127); 
         
-        
+        /* Опционально: можно добавить легкую рамку или эффект */
+        /* border: 1px solid rgba(255, 255, 255, 200); */
+    }
+                                        """)
+
+        self.settings_btn.clicked.connect(self.on_settings_button_clicked)
+                
         # self.layout = QGridLayout()
         # self.layout.addWidget(self.textEdit)
         # self.setLayout(self.layout)
@@ -168,6 +217,14 @@ class Window(QMainWindow):
         self.worker_thread.start()
 
         self.show()
+
+    def on_settings_button_clicked(self):
+        nt_posix_run('settings.pyw')
+    
+    def update_window_size(self):
+        # Пример расчёта: ширина как количество символов, высота ~строк
+        #char_width = self.textEdit.fontMetrics().width('a')
+        self.resize(self.fontSize*40, self.fontSize*17)
 
     def closeEvent(self, event):
         event.ignore()
