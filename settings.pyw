@@ -1,4 +1,3 @@
-
 import sys
 import subprocess
 from PyQt5.QtWidgets import (QApplication, QWidget, QGridLayout, QLabel, 
@@ -8,7 +7,6 @@ from PyQt5.QtWidgets import (QApplication, QWidget, QGridLayout, QLabel,
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QColor, QFont, QPalette
 import configparser
-
 import traceback
 
 
@@ -28,25 +26,32 @@ class SettingsWindow(QWidget):
         # Получаем цвета из конфига
         bg_color = self.config.get('settings', 'background_color', fallback='#f0f0f0')
         fg_color = self.config.get('settings', 'foreground_color', fallback='#000000')
-        #bg_alpha = self.config.getint('settings', 'background_transparency', fallback=255)
         
-        # Формируем стиль окна (теперь прозрачность НЕ зависит от ползунка)
-##        style_sheet = f"background-color: rgba({QColor(bg_color).red()}, {QColor(bg_color).green()}, {QColor(bg_color).blue()}, 255); color: {fg_color};"
-##        self.setStyleSheet(style_sheet)
-
+        self.pal = self.palette()
+        self._apply_palette(bg_color, fg_color)
+        
         self.init_ui()
+
+    def _apply_palette(self, bg_hex, fg_hex):
+        """Применяет палитру для всего окна"""
+        c_bg = QColor(bg_hex)
+        c_fg = QColor(fg_hex)
+        
+        for role in [QPalette.Normal, QPalette.Inactive, QPalette.Disabled]:
+            self.pal.setColor(role, QPalette.Window, c_bg)
+            self.pal.setColor(role, QPalette.WindowText, c_fg)
+        
+        self.setPalette(self.pal)
 
     def init_ui(self):
         self.setWindowTitle('Параметры')
+        self.setAutoFillBackground(True)
         
         layout = QGridLayout()
         layout.setSpacing(15)
         layout.setContentsMargins(20, 20, 20, 20)
 
         row = 0
-
-##        spacer = QSpacerItem(20, 10, QSizePolicy.Minimum, QSizePolicy.Fixed)
-##        layout.addItem(spacer)
 
         # --- Заголовок ---
         self.title = QLabel("Настройки LifePart")
@@ -56,7 +61,6 @@ class SettingsWindow(QWidget):
         font = self.title.font()
         font.setWeight(QFont.Weight.Bold)
         self.title.setFont(font)
-        # self.title.setStyleSheet(f"font-weight: bold; padding-bottom: 10px;")
         
         layout.addWidget(self.title, row, 0, 1, 2, alignment=Qt.AlignCenter)
         row += 1
@@ -87,12 +91,9 @@ class SettingsWindow(QWidget):
         spin_layout.addWidget(test_lbl_number)
         spin_layout.addWidget(self.test_spin_font)
         
-        #layout.addWidget(spin_container, row, 0, 1, 2, alignment=Qt.AlignCenter)
-        row += 1
-        
         layout.addWidget(spin_container, row, 0, 1, 2, alignment=Qt.AlignCenter)
         row += 1
-
+        
         # --- Флажок show_cmd ---
         self.check_show_cmd = QCheckBox("Показывать основное окно при запуске")
         show_cmd_val = self.config.getboolean('settings', 'show_cmd', fallback=True)
@@ -105,10 +106,7 @@ class SettingsWindow(QWidget):
         # 1. Выбор цвета фона
         lbl_bg_color = QLabel("Цвет фона:")
         self.btn_bg_color = QPushButton("Выбрать цвет")
-        
         self.btn_bg_color.clicked.connect(lambda: self.open_color_dialog('bg'))
-        
-        #self._apply_button_style(self.btn_bg_color)
         
         layout.addWidget(lbl_bg_color, row, 0, alignment=Qt.AlignRight | Qt.AlignVCenter)
         layout.addWidget(self.btn_bg_color, row, 1, alignment=Qt.AlignLeft | Qt.AlignVCenter)
@@ -120,7 +118,6 @@ class SettingsWindow(QWidget):
         self.slider_trans.setRange(0, 255)
         trans_val = self.config.getint('settings', 'background_transparency', fallback=255)
         self.slider_trans.setValue(trans_val)
-        # Теперь при изменении значения запускается test.py
         self.slider_trans.sliderReleased.connect(self.run_test_script)
         
         layout.addWidget(lbl_trans, row, 0, alignment=Qt.AlignRight | Qt.AlignVCenter)
@@ -131,8 +128,6 @@ class SettingsWindow(QWidget):
         lbl_fg_color = QLabel("Цвет текста:")
         self.btn_fg_color = QPushButton("Выбрать цвет")
         self.btn_fg_color.clicked.connect(lambda: self.open_color_dialog('fg'))
-        
-        #self._apply_button_style(self.btn_fg_color)
 
         layout.addWidget(lbl_fg_color, row, 0, alignment=Qt.AlignRight | Qt.AlignVCenter)
         layout.addWidget(self.btn_fg_color, row, 1, alignment=Qt.AlignLeft | Qt.AlignVCenter)
@@ -161,63 +156,61 @@ class SettingsWindow(QWidget):
         self.btn_save.clicked.connect(self.save_settings)
         
         self.btn_save.setStyleSheet(self._get_button_css())
-        #self.btn_save.apply_button_style()
         
         layout.addWidget(self.btn_save, row, 0, 1, 2, alignment=Qt.AlignCenter)
 
         self.setLayout(layout)
 
+        # Применяем начальный шрифт
         value = self.test_spin_font.value()
         new_font = QFont()
         new_font.setPointSize(value)
         self.setFont(new_font)
+        self._update_fonts(new_font)
 
-        #self.spin_font.setStyleSheet("background-color: black;")
-
-        
+        # Убираем setFixedSize — пусть окно само подстраивается
+        # self.setFixedSize(self.sizeHint())
         self.adjustSize()
-        self.setFixedSize(self.sizeHint())
-        self.setMinimumHeight(300) 
 
     def _get_button_css(self):
-        """Генерирует CSS строку для кнопок на основе текущего цвета текста из конфига"""
         fg_hex = self.config.get('settings', 'foreground_color', fallback='#000000')
-        bg_hex = self.config.get('settings', 'background_color', fallback='#000000')
+        bg_hex = self.config.get('settings', 'background_color', fallback='#cccccc')
         return f"""
             QPushButton {{
-                padding: 10px;
+                padding: 12px;
                 color: {fg_hex};
                 font-weight: bold;
                 background-color: {bg_hex};
+                border: 1px solid #555;
+                border-radius: 4px;
+            }}
+            QPushButton:hover {{
+                background-color: #ddd;
             }}
         """
+
     def _get_spinBox_css(self):
-        """Генерирует CSS строку для кнопок на основе текущего цвета текста из конфига"""
         fg_hex = self.config.get('settings', 'foreground_color', fallback='#000000')
         bg_hex = self.config.get('settings', 'background_color', fallback='#ffffff')
         return f"""
             QSpinBox {{
-            background-color: {bg_hex};
-            color: {fg_hex};
-            padding: 10px;
-            border: none;
-            border-radius: 4px;
-        }}
-
-
+                background-color: {bg_hex};
+                color: {fg_hex};
+                padding: 8px;
+                border: 1px solid #ccc;
+                border-radius: 4px;
+            }}
         """
 
-    def _apply_button_style(self, button):
-        """Применяет актуальный стиль к кнопке"""
-        button.setStyleSheet(self._get_button_css())
-        self.btn_save.setStyleSheet(self._get_button_css())
+    def _update_fonts(self, font):
+        widgets_to_update = [
+            self.test_spin_font, self.spin_freq,
+            self.btn_bg_color, self.btn_fg_color, self.btn_save
+        ]
+        for w in widgets_to_update:
+            w.setFont(font)
 
-    def _apply_spinBox_style(self, spinBox):
-        """Применяет актуальный стиль к кнопке"""
-        spinBox.setStyleSheet(self._get_spinBox_css())
-        
     def open_color_dialog(self, mode):
-        """Открывает диалог выбора цвета"""
         current_color = ""
         if mode == 'bg':
             current_color = self.config.get('settings', 'background_color', fallback='#f0f0f0')
@@ -230,19 +223,26 @@ class SettingsWindow(QWidget):
             hex_color = color.name()
             if mode == 'bg':
                 self.config['settings']['background_color'] = hex_color
-                self.apply_dynamic_style()
-                self._apply_button_style(self.btn_bg_color)
+                self._apply_palette(hex_color, self.config.get('settings', 'foreground_color'))
             elif mode == 'fg':
                 self.config['settings']['foreground_color'] = hex_color
-                self.apply_dynamic_style()
-                self._apply_button_style(self.btn_fg_color)
-            self._apply_spinBox_style(self.test_spin_font)
-            self._apply_spinBox_style(self.spin_freq)
+                self._apply_palette(
+                    self.config.get('settings', 'background_color'), hex_color
+                )
+            
+            # Обновляем стили и шрифты
+            self.btn_bg_color.setStyleSheet(self._get_button_css())
+            self.btn_fg_color.setStyleSheet(self._get_button_css())
+            self.btn_save.setStyleSheet(self._get_button_css())
+            
+            self.test_spin_font.setStyleSheet(self._get_spinBox_css())
+            self.spin_freq.setStyleSheet(self._get_spinBox_css())
 
-    # ИЗМЕНЕНО: теперь это запускает test.py, а не меняет прозрачность
+            # Принудительно обновляем layout
+            self.layout().activate()
+            self.adjustSize()
+
     def run_test_script(self):
-        """Запускает test.py при изменении ползунка"""
-        value = self.slider_trans.value()
         try:
             subprocess.Popen([sys.executable, "longBlink.pyw", "5", str(self.slider_trans.value())])
         except Exception as e:
@@ -253,51 +253,19 @@ class SettingsWindow(QWidget):
         new_font = QFont()
         new_font.setPointSize(value)
         self.setFont(new_font)
-        self.test_spin_font.setFont(new_font)
-        self.spin_freq.setFont(new_font)
-        self.btn_bg_color.setFont(new_font)
-        self.btn_fg_color.setFont(new_font)
-        self.btn_save.setFont(new_font)
-
-
-        self.setFixedSize(-1, -1)      # -1 означает «нет фиксированного размера»
+        self._update_fonts(new_font)
+        
+        # Обновляем стили (padding может зависеть от размера шрифта)
+        self.btn_bg_color.setStyleSheet(self._get_button_css())
+        self.btn_fg_color.setStyleSheet(self._get_button_css())
+        self.btn_save.setStyleSheet(self._get_button_css())
+        self.test_spin_font.setStyleSheet(self._get_spinBox_css())
+        self.spin_freq.setStyleSheet(self._get_spinBox_css())
+        
+        self.layout().activate()
         self.adjustSize()
-        self.setFixedSize(self.sizeHint())
-
-    # УСТАРЕЛО: больше не используется для прозрачности, но можно оставить для других стилей
-    def update_window_transparency(self, value):
-        """Больше не используется для смены прозрачности окна"""
-        pass
-
-    def apply_dynamic_style(self):
-        """Применяет стиль окна на основе текущих значений в конфиге"""
-        bg_hex = self.config.get('settings', 'background_color', fallback='#f0f0f0')
-        fg_hex = self.config.get('settings', 'foreground_color', fallback='#000000')
-        alpha = self.slider_trans.value()  # Это значение теперь не влияет на прозрачность
-        
-        c_bg = QColor(bg_hex)
-        c_fg = QColor(fg_hex)
-        # Прозрачность теперь НЕ меняется динамически через ползунок
-        #style = f"background-color: rgba({c.red()}, {c.green()}, {c.blue()}, 255); color: {fg_hex};"
-        #self.setStyleSheet(style)
-        self.pal.setColor(QPalette.Normal, QPalette.Window, c_bg)
-        self.pal.setColor(QPalette.Inactive, QPalette.Window, c_bg)
-        self.pal.setColor(QPalette.Disabled, QPalette.Window, c_bg)
-        
-        self.pal.setColor(QPalette.Normal, QPalette.WindowText, c_fg)
-        self.pal.setColor(QPalette.Inactive, QPalette.WindowText, c_fg)
-        self.pal.setColor(QPalette.Disabled, QPalette.WindowText, c_fg)
-
-        # Применяем палитру
-        window.setPalette(self.pal)
-        
-        self._apply_button_style(self.btn_bg_color)
-        self._apply_button_style(self.btn_fg_color)
-        self._apply_spinBox_style(self.test_spin_font)
-        self._apply_spinBox_style(self.spin_freq)
 
     def save_settings(self):
-        """Сохраняет текущие значения виджетов в config.ini"""
         if not self.config.has_section('settings'):
             self.config.add_section('settings')
 
@@ -305,28 +273,17 @@ class SettingsWindow(QWidget):
         self.config.set('settings', 'show_cmd', str(self.check_show_cmd.isChecked()))
         self.config.set('settings', 'background_color', self.config.get('settings', 'background_color'))
         self.config.set('settings', 'foreground_color', self.config.get('settings', 'foreground_color'))
-        # Сохраняем значение ползунка, но оно больше не меняет прозрачность окна
         self.config.set('settings', 'background_transparency', str(self.slider_trans.value()))
         self.config.set('settings', 'update_frequency', str(self.spin_freq.value()))
 
         with open('config.ini', 'w') as configfile:
             self.config.write(configfile)
         
-        #print("Test Настройки сохранены")
         self.close()
+
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     window = SettingsWindow()
     window.show()
-
-    window.pal = window.palette()
-    window.setAutoFillBackground(True)
-
-
-    window.apply_dynamic_style()
-    #window._apply_button_style(window.btn_bg_color)
-    #window._apply_spinBox_style(window.spin_font)
-    
-    
     sys.exit(app.exec_())

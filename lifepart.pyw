@@ -58,6 +58,8 @@ class Worker(QObject):
         print('updFreq = ' + updFreq)
         self.timer.start(int(updFreq))
 
+        self.timer.timeout.connect(self.loopCheck)
+
         # self.finished.emit()
 
     def loopCheck(self):
@@ -234,9 +236,9 @@ config = configparser.ConfigParser()
 config.read('config.ini')
 
 def quit_window():
-    config['settings']['show_cmd'] = str(not sh)
-    with open('config.ini', 'w') as configfile:
-        config.write(configfile)
+##    config['settings']['show_cmd'] = str(not sh)
+##    with open('config.ini', 'w') as configfile:
+##        config.write(configfile)
     os._exit(0)
 
 def toggle_window():
