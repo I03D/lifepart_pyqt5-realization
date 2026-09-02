@@ -14,7 +14,7 @@ CloseApplications=yes
 DefaultDirName={autopf}\{#MyAppName}
 DisableProgramGroupPage=yes
 PrivilegesRequiredOverridesAllowed=dialog
-OutputDir=C:\Users\user\Desktop\lifepart_pyqt5-realization-main
+OutputDir=.
 OutputBaseFilename=Setup LifePart
 SolidCompression=yes
 WizardStyle=modern dynamic
@@ -34,11 +34,13 @@ Source: "{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
 Source: "icon.ico"; DestDir: "{app}"; Flags: ignoreversion
 ; 3. Копируем остальные файлы
 Source: "*"; DestDir: "{app}"; Excludes: "*.pyw *.ico"; Flags: ignoreversion 
+; 4. Копируем весь portable Python в {app}\python
+Source: "python_embed\*"; DestDir: "{app}\python_embed"; Flags: recursesubdirs
 
 [Icons]
-; Явно указываем иконку
-Name: "{autoprograms}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; IconFilename: "{app}\icon.ico"
-Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon; IconFilename: "{app}\icon.ico"
+Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\python_embed\pythonw.exe"; Parameters: """{app}\{#MyAppExeName}"""; IconFilename: "{app}\icon.ico"
+Name: "{group}\{#MyAppName}"; Filename: "{app}\python_embed\pythonw.exe"; Parameters: """{app}\{#MyAppExeName}"""; IconFilename: "{app}\icon.ico"
 
 [Run]
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#DoubleAmp(MyAppName)}}"; Flags: shellexec postinstall skipifsilent
+

@@ -16,6 +16,11 @@ import os
 import time
 from math import floor
 
+# Добавляем директорию, где лежит program.py, в начало sys.path
+script_dir = os.path.dirname(os.path.abspath(__file__))
+if script_dir not in sys.path:
+    sys.path.insert(0, script_dir)
+
 import lockTest
 
 import traceback
