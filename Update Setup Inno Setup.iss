@@ -44,3 +44,5 @@ Name: "{group}\{#MyAppName}"; Filename: "{app}\python_embed\pythonw.exe"; Parame
 [Run]
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#DoubleAmp(MyAppName)}}"; Flags: shellexec postinstall skipifsilent
 
+[UninstallDelete]
+Type: filesandordirs; Name: "{app}\python_embed"
