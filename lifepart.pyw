@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import QLabel, QMainWindow, QApplication, QTextEdit, QSizePolicy, QPushButton
-from PyQt5.QtCore import QTimer, QThread, QObject, pyqtSignal, QStandardPaths, QEvent
+from PyQt5.QtCore import QTimer, QThread, QObject, pyqtSignal, pyqtSlot, QStandardPaths, QEvent, Qt
 from PyQt5.QtNetwork import QLocalServer, QLocalSocket
 from PyQt5.QtGui import QPixmap, QTextCursor, QIcon, QFontMetrics
 from PyQt5 import QtCore, QtWidgets
@@ -14,6 +14,7 @@ import threading
 import subprocess
 import os
 import time
+import ctypes
 from math import floor
 
 # Добавляем директорию, где лежит program.py, в начало sys.path
@@ -48,14 +49,39 @@ def nt_posix_run(program, arg=None):
 
     subprocess.Popen(cmd)
 
+
+# --- ХЕЛПЕР ДЛЯ ПРИНУДИТЕЛЬНОЙ АКТИВАЦИИ ОКНА ---
+def force_activate_window(window):
+    """Принудительно выводит окно на передний план."""
+    # Снимаем состояние свёрнутости, если оно есть
+    window.setWindowState(window.windowState() & ~Qt.WindowMinimized)
+    window.show()
+    window.activateWindow()
+    window.raise_()
+
+    if os.name == 'nt':
+        try:
+            hwnd = int(window.winId())
+            user32 = ctypes.windll.user32
+            if user32.IsIconic(hwnd):
+                user32.ShowWindow(hwnd, 9)  # SW_RESTORE
+            user32.SetForegroundWindow(hwnd)
+        except Exception:
+            pass
+
+
 # --- НАЧАЛО: Логика SingleInstance ---
 class SingleInstanceManager:
     def __init__(self, app, server_name="lifepart_single_instance"):
         self.app = app
+        self.main_window = None
         username = getpass.getuser()
         self.server_name = f"{server_name}_{username}"
         self.local_server = None
         self.socket = None
+
+    def set_main_window(self, window):
+        self.main_window = window
 
     def check_and_activate(self):
         self.socket = QLocalSocket()
@@ -76,6 +102,7 @@ class SingleInstanceManager:
 
     def _start_server(self):
         self.local_server = QLocalServer()
+        QLocalServer.removeServer(self.server_name)
         if not self.local_server.listen(self.server_name):
             QLocalServer.removeServer(self.server_name)
             if not self.local_server.listen(self.server_name):
@@ -90,17 +117,14 @@ class SingleInstanceManager:
     def _read_message(self, socket):
         data = socket.readAll()
         if data == b"activate":
-            for w in self.app.topLevelWidgets():
-                if isinstance(w, Window):
-                    w.show()
-                    w.activateWindow()
-                    w.raise_()
-                    break
+            if self.main_window:
+                force_activate_window(self.main_window)
         socket.disconnectFromServer()
 
 
 class Worker(QObject):
     finished = pyqtSignal()
+    new_log_message = pyqtSignal(str)
 
     def __init__(self):
         super().__init__()
@@ -180,8 +204,7 @@ class Worker(QObject):
                 text = '\n(Windows+L заблокирует сессию и сбросит таймер в течение 5 минут)'
             case _:
                 text = '\nEmpty message!'
-        window.textEdit.moveCursor(QTextCursor.End)
-        window.textEdit.insertPlainText(text)
+        self.new_log_message.emit(text)
 
 
 class Window(QMainWindow):
@@ -207,7 +230,7 @@ class Window(QMainWindow):
         self.textEdit.setGeometry(0, 0, 460, 170)
         self.textEdit.setReadOnly(True)
         self.fontSize = int(config['settings']['font_size'])
-        self.textEdit.setFontPointSize(self.fontSize);
+        self.textEdit.setFontPointSize(self.fontSize)
         self.textEdit.setAlignment(QtCore.Qt.AlignCenter)
         self.textEdit.insertPlainText("~ Мигалка ~")
         self.textEdit.insertPlainText("\nЭта программа напоминает делать 15-минутный перерыв")
@@ -221,7 +244,7 @@ class Window(QMainWindow):
         wid = QtWidgets.QWidget(self)
         self.setCentralWidget(wid)
         layout = QtWidgets.QVBoxLayout()
-        layout.setContentsMargins(0,0,0,0)
+        layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(self.textEdit)
         wid.setLayout(layout)
 
@@ -252,9 +275,18 @@ class Window(QMainWindow):
         self.worker.moveToThread(self.worker_thread)
         self.worker.finished.connect(self.worker_thread.quit)
         self.worker_thread.started.connect(self.worker.do_work)
+
+        # Потокобезопасная связь: сигнал -> слот в главном потоке
+        self.worker.new_log_message.connect(self.append_log)
+
         self.worker_thread.start()
 
         self.show()
+
+    @pyqtSlot(str)
+    def append_log(self, text):
+        self.textEdit.moveCursor(QTextCursor.End)
+        self.textEdit.insertPlainText(text)
 
     def eventFilter(self, obj, event):
         if obj is self.textEdit.verticalScrollBar():
@@ -277,14 +309,14 @@ class Window(QMainWindow):
         nt_posix_run('settings.pyw')
 
     def update_window_size(self):
-        self.resize(self.fontSize*40, self.fontSize*17)
+        self.resize(self.fontSize * 40, self.fontSize * 17)
 
     def closeEvent(self, event):
         global sh
-
         event.ignore()
         sh = True
-        window.hide()
+        self.hide()
+
 
 config = configparser.ConfigParser()
 config.read('config.ini')
@@ -293,13 +325,11 @@ def quit_window():
     os._exit(0)
 
 def show_window():
-    """Показывает окно и забирает фокус. Не toggle — всегда показывает."""
+    """Показывает окно и забирает фокус."""
     global sh
     global window
     sh = False
-    window.show()
-    window.activateWindow()
-    window.raise_()
+    force_activate_window(window)
 
 def run_settings():
     nt_posix_run("settings.pyw")
@@ -339,9 +369,12 @@ if instance_manager.check_and_activate():
         sh = True
 
     window = Window()
+    instance_manager.set_main_window(window)
+
     nt_posix_run("longBlink.pyw", 0)
 
     sys.exit(App.exec())
 else:
     App.quit()
     sys.exit(0)
+
