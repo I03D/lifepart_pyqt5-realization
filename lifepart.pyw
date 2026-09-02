@@ -1,5 +1,6 @@
 from PyQt5.QtWidgets import QLabel, QMainWindow, QApplication, QTextEdit, QSizePolicy, QPushButton
-from PyQt5.QtCore import QTimer, QThread, QObject, pyqtSignal
+from PyQt5.QtCore import QTimer, QThread, QObject, pyqtSignal, QStandardPaths, QEvent
+from PyQt5.QtNetwork import QLocalServer, QLocalSocket
 from PyQt5.QtGui import QPixmap, QTextCursor, QIcon, QFontMetrics
 from PyQt5 import QtCore, QtWidgets
 
@@ -26,11 +27,9 @@ def exception_hook(exctype, value, traceback_):
 
 sys.excepthook = exception_hook
 
-
 os.chdir(os.path.dirname(os.path.realpath(__file__)))
 
 def nt_posix_run(program, arg=None):
-    # Формируем базовый список аргументов
     if os.name == 'posix':
         cmd = ["python", program]
     elif os.name == 'nt':
@@ -38,13 +37,62 @@ def nt_posix_run(program, arg=None):
     else:
         raise OSError(f"Unsupported OS: {os.name}")
 
-    # Добавляем аргумент, если он передан
     if arg is not None:
-        # Преобразуем в строку — subprocess ожидает строковые аргументы
         cmd.append(str(arg))
 
-    subprocess.run(cmd)
+    subprocess.Popen(cmd)
 
+# --- НАЧАЛО: Логика SingleInstance ---
+class SingleInstanceManager:
+    def __init__(self, app, server_name="lifepart_single_instance"):
+        self.app = app
+        self.server_name = server_name
+        self.local_server = None
+        self.socket = None
+
+    def check_and_activate(self):
+        self.socket = QLocalSocket()
+        self.socket.connectToServer(self.server_name)
+
+        if self.socket.waitForConnected(1000):
+            print("Instance already running. Activating existing window...")
+            self.socket.write(b"activate")
+            self.socket.waitForBytesWritten(1000)
+            self.socket.disconnectFromServer()
+            if self.socket.state() != QLocalSocket.UnconnectedState:
+                self.socket.waitForDisconnected(1000)
+            return False
+        else:
+            print("No instance found. Starting new instance...")
+            self._start_server()
+            return True
+
+    def _start_server(self):
+        self.local_server = QLocalServer()
+        QLocalServer.removeServer(self.server_name)
+
+        if not self.local_server.listen(self.server_name):
+            print(f"Failed to start local server: {self.local_server.errorString()}")
+            sys.exit(1)
+
+        self.local_server.newConnection.connect(self._handle_new_connection)
+
+    def _handle_new_connection(self):
+        socket = self.local_server.nextPendingConnection()
+        socket.readyRead.connect(lambda s=socket: self._read_message(s))
+
+    def _read_message(self, socket):
+        data = socket.readAll()
+        if data == b"activate":
+            for w in self.app.topLevelWidgets():
+                if isinstance(w, Window):
+                    w.show()
+                    w.activateWindow()
+                    w.raise_()
+                    break
+        socket.disconnectFromServer()
+
+# --- КОНЕЦ: Логика SingleInstance ---
 
 class Worker(QObject):
     finished = pyqtSignal()
@@ -59,8 +107,6 @@ class Worker(QObject):
         self.timer.start(int(updFreq))
 
         self.timer.timeout.connect(self.loopCheck)
-
-        # self.finished.emit()
 
     def loopCheck(self):
         global big_timer
@@ -133,11 +179,10 @@ class Worker(QObject):
         window.textEdit.insertPlainText(text)
 
 
+class Window(QMainWindow):
+    def __init__(self):
+        super().__init__()
 
-class Window(QMainWindow): 
-    def __init__(self): 
-        super().__init__() 
-  
         self.setWindowTitle("LifePart")
         print('test font-size == ' + config['settings']['font_size'])
         self.setStyleSheet('background-color: '
@@ -148,13 +193,13 @@ class Window(QMainWindow):
         self.setGeometry(0, 0, 460, 170)
 
         self.setWindowIcon(QIcon('icon.png'))
-        
+
         x = int((size.width() - self.width()) / 2)
         y = int((size.height() - self.height()) / 2)
         self.move(x, y)
-        
+
         self.textEdit = QTextEdit(self)
-        self.textEdit.setGeometry(0, 0, 460, 170)  # Set the position and size of the input field
+        self.textEdit.setGeometry(0, 0, 460, 170)
         self.textEdit.setReadOnly(True)
         self.fontSize = int(config['settings']['font_size'])
         self.textEdit.setFontPointSize(self.fontSize);
@@ -165,13 +210,9 @@ class Window(QMainWindow):
         self.textEdit.insertPlainText("\n(Программа работает в фоне; окно можно закрыть)")
         self.textEdit.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
-        # Подключаем сигнал на изменение текста
-        #self.textEdit.document().contentsChanged.connect(self.update_window_size)
         self.update_window_size()
-        
-        # Опционально: ограничим минимальную высоту (например, чтобы не было слишком коротко)
         self.textEdit.setMinimumHeight(100)
-        
+
         wid = QtWidgets.QWidget(self)
         self.setCentralWidget(wid)
         layout = QtWidgets.QVBoxLayout()
@@ -179,37 +220,27 @@ class Window(QMainWindow):
         layout.addWidget(self.textEdit)
         wid.setLayout(layout)
 
-        pixmap = QPixmap("settings.png")        
+        pixmap = QPixmap("settings.png")
         self.settings_btn = QPushButton(self)
         self.settings_btn.setIcon(QIcon(pixmap))
         self.settings_btn.setIconSize(pixmap.size())
         self.settings_btn.setFlat(True)
-        x = int(self.width() - 16 - 5)
-        y = 5
-        self.settings_btn.move(x, y)
         self.settings_btn.resize(pixmap.width(), pixmap.height())
         self.settings_btn.setStyleSheet("""
     QPushButton {
         border: none;
-        background-color: transparent; /* Убираем фон самой кнопки */
+        background-color: transparent;
     }
-    
+
     QPushButton:hover {
-        /* Белый цвет с прозрачностью 127 (50%) */
-        background-color: rgba(255, 255, 255, 127); 
-        
-        /* Опционально: можно добавить легкую рамку или эффект */
-        /* border: 1px solid rgba(255, 255, 255, 200); */
+        background-color: rgba(255, 255, 255, 127);
     }
                                         """)
 
+        self.textEdit.verticalScrollBar().installEventFilter(self)
+        self.update_settings_button_position()
+
         self.settings_btn.clicked.connect(self.on_settings_button_clicked)
-                
-        # self.layout = QGridLayout()
-        # self.layout.addWidget(self.textEdit)
-        # self.setLayout(self.layout)
-        
-        # self.closeEvent = quit_window
 
         self.worker = Worker()
         self.worker_thread = QThread()
@@ -220,77 +251,92 @@ class Window(QMainWindow):
 
         self.show()
 
+    def eventFilter(self, obj, event):
+        if obj is self.textEdit.verticalScrollBar():
+            if event.type() in (QEvent.Show, QEvent.Hide):
+                self.update_settings_button_position()
+        return super().eventFilter(obj, event)
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        self.update_settings_button_position()
+
+    def update_settings_button_position(self):
+        sb = self.textEdit.verticalScrollBar()
+        offset = sb.width() if sb.isVisible() else 0
+        x = int(self.width() - offset - self.settings_btn.width() - 4)
+        y = 5
+        self.settings_btn.move(x, y)
+
     def on_settings_button_clicked(self):
         nt_posix_run('settings.pyw')
-    
+
     def update_window_size(self):
-        # Пример расчёта: ширина как количество символов, высота ~строк
-        #char_width = self.textEdit.fontMetrics().width('a')
         self.resize(self.fontSize*40, self.fontSize*17)
 
     def closeEvent(self, event):
+        global sh
+
         event.ignore()
-        toggle_window()
+        sh = True
+        window.hide()
 
 config = configparser.ConfigParser()
 config.read('config.ini')
 
 def quit_window():
-##    config['settings']['show_cmd'] = str(not sh)
-##    with open('config.ini', 'w') as configfile:
-##        config.write(configfile)
     os._exit(0)
 
-def toggle_window():
+def show_window():
+    """Показывает окно и забирает фокус. Не toggle — всегда показывает."""
     global sh
-    if sh:
-        sh = False
-        window.show()
-    else:
-        sh = True
-        window.hide()
+    global window
+    sh = False
+    window.show()
+    window.activateWindow()
+    window.raise_()
 
 def run_settings():
     nt_posix_run("settings.pyw")
 
 def showIcon():
-    image=Image.open("icon.png")
-    menu=(
-        item('Показать/скрыть', toggle_window, default=True),
+    image = Image.open("icon.png")
+    menu = (
+        item('Показать', show_window, default=True),
         item('Настройки', run_settings),
-        item('Выход', quit_window))
-    default=True
-    icon=pystray.Icon('name', image, 'LifePart', menu)
+        item('Выход', quit_window),
+    )
+    icon = pystray.Icon('name', image, 'LifePart', menu)
     icon.run()
-
-x = threading.Thread(target=showIcon, args=())
-x.start()
-
-sh = config['settings']['show_cmd']
-
-if sh == "False":
-    sh = False
-else:
-    sh = True
-
-# toggle_window()
 
 small_timer = 0
 big_timer = 0
-
 big_timer_start = floor(time.time())
 small_timer_start = big_timer_start
-
 locked = False
 
+# --- ГЛАВНАЯ ТОЧКА ВХОДА С ПРОВЕРКОЙ SINGLEINSTANCE ---
 App = QApplication(sys.argv)
 
 screen = App.primaryScreen()
 size = screen.size()
-        
-nt_posix_run("longBlink.pyw", 0)
 
-window = Window() 
- 
-sys.exit(App.exec()) 
+instance_manager = SingleInstanceManager(App)
 
+if instance_manager.check_and_activate():
+    x = threading.Thread(target=showIcon, args=(), daemon=True)
+    x.start()
+
+    sh = config['settings']['show_cmd']
+    if sh == "False":
+        sh = False
+    else:
+        sh = True
+
+    window = Window()
+    nt_posix_run("longBlink.pyw", 0)
+
+    sys.exit(App.exec())
+else:
+    App.quit()
+    sys.exit(0)
