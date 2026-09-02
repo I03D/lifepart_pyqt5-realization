@@ -24,6 +24,7 @@ if script_dir not in sys.path:
 import lockTest
 
 import traceback
+import getpass
 
 
 def exception_hook(exctype, value, traceback_):
@@ -51,7 +52,8 @@ def nt_posix_run(program, arg=None):
 class SingleInstanceManager:
     def __init__(self, app, server_name="lifepart_single_instance"):
         self.app = app
-        self.server_name = server_name
+        username = getpass.getuser()
+        self.server_name = f"{server_name}_{username}"
         self.local_server = None
         self.socket = None
 
@@ -74,12 +76,11 @@ class SingleInstanceManager:
 
     def _start_server(self):
         self.local_server = QLocalServer()
-        QLocalServer.removeServer(self.server_name)
-
         if not self.local_server.listen(self.server_name):
-            print(f"Failed to start local server: {self.local_server.errorString()}")
-            sys.exit(1)
-
+            QLocalServer.removeServer(self.server_name)
+            if not self.local_server.listen(self.server_name):
+                print(f"Failed to start local server: {self.local_server.errorString()}")
+                sys.exit(1)
         self.local_server.newConnection.connect(self._handle_new_connection)
 
     def _handle_new_connection(self):
@@ -97,7 +98,6 @@ class SingleInstanceManager:
                     break
         socket.disconnectFromServer()
 
-# --- КОНЕЦ: Логика SingleInstance ---
 
 class Worker(QObject):
     finished = pyqtSignal()
