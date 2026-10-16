@@ -1,7 +1,9 @@
 # ~ LifePart / Мигалка ~
-<div style="text-align: center;">
-  <img width="128" height="128" alt="Screenshot_1" src="https://github.com/user-attachments/assets/92383f6f-b62c-4f22-851e-d3e2b30ae8bb" />
-</div>
+<img width="718" height="81" alt="Screenshot_55" src="https://github.com/user-attachments/assets/b3da5783-0433-495f-abbc-fe02032db64d" />
+
+<img width="653" height="356" alt="Screenshot_3" src="https://github.com/user-attachments/assets/4ca02ebb-7a04-4376-bbd5-e5bb8405dbc8" />
+
+<img width="128" height="128" alt="Screenshot_1" src="https://github.com/user-attachments/assets/92383f6f-b62c-4f22-851e-d3e2b30ae8bb" />
 
 # Доступные настройки:
 <img width="400" height="486" alt="Screenshot_4" src="https://github.com/user-attachments/assets/effbe0ab-22d2-4d15-8b4f-5b629740adad" />
